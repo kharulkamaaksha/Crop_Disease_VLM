@@ -1,0 +1,25 @@
+# Core ML / inference
+# Versions are pinned to match this project's own known-working environment,
+# so `pip install -r requirements.txt` reproduces it exactly.
+# GPU users: if you need a specific CUDA build of torch, install it first
+# following https://pytorch.org/get-started/locally/, then run the command
+# below — pip will see torch is already satisfied and skip it.
+torch==2.13.0
+torchvision==0.28.0
+transformers==5.13.1
+peft==0.19.1
+accelerate==1.14.0
+safetensors==0.8.0
+sentencepiece==0.2.2
+huggingface_hub==1.23.0
+
+# Vision / image processing
+opencv-python==5.0.0.93
+numpy==2.2.6
+Pillow==12.3.0
+
+# App
+streamlit==1.59.1
+
+# Optional — exploratory plotting/analysis, not imported by the app itself
+matplotlib==3.10.9

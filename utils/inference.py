@@ -1,4 +1,4 @@
-# latest_changes/utils/inference.py
+# utils/inference.py
 """
 Runs Qwen2.5-VL inference using the chat-template format.
 Only the newly generated tokens are returned (prompt tokens excluded).

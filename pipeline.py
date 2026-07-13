@@ -1,4 +1,4 @@
-# latest_changes/pipeline.py
+# pipeline.py
 """
 Production-grade single-call pipeline for plant disease diagnosis.
 
@@ -27,14 +27,14 @@ from transformers import AutoProcessor, CLIPModel, CLIPProcessor
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from config import CONFIDENCE_OFFSET, OOD_THRESHOLD
+from config import CONFIDENCE_OFFSET, LOG_LEVEL, OOD_THRESHOLD
 from utils.ood import run_ood
 from utils.inference import run_inference
 from utils.parser import parse_caption
 from utils.validator import validate_plant
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=getattr(logging, LOG_LEVEL, logging.INFO),
     format="%(asctime)s  [%(levelname)s]  %(name)s — %(message)s",
     datefmt="%H:%M:%S",
 )

@@ -1,10 +1,9 @@
-# latest_changes/app.py
+# app.py
 """
 PlantVillage AI Diagnosis System — Premium UI with GradCAM explainability.
 """
 
-import base64
-import io
+import html
 import logging
 import os
 import sys
@@ -14,12 +13,16 @@ from PIL import Image
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from config import OOD_THRESHOLD, SUPPORTED_PLANTS
+from config import LOG_LEVEL, OOD_THRESHOLD, SUPPORTED_PLANTS
 from models.loader import load_clip, load_vlm
 from pipeline import run_pipeline
 from utils.gradcam import generate_gradcam
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logging.basicConfig(
+    level=getattr(logging, LOG_LEVEL, logging.INFO),
+    format="%(asctime)s [%(levelname)s] %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -400,7 +403,7 @@ def main():
         if uploaded:
             image = Image.open(uploaded).convert("RGB")
             st.markdown('<div class="panel-title" style="margin-bottom:8px;">03 — Preview</div>', unsafe_allow_html=True)
-            st.image(image, use_column_width=True)
+            st.image(image, width="stretch")
 
     # ── RIGHT: Results panel ──────────────────────────────────────────────────
     with col_right:
@@ -414,14 +417,35 @@ def main():
             return
 
         # Run pipeline
-        with st.spinner("Running AI pipeline…"):
-            vlm, processor, clip_model, clip_proc = _load_models()
-            result = run_pipeline(
-                image, selected_plant,
-                vlm, processor,
-                clip_model, clip_proc,
-                ood_threshold=OOD_THRESHOLD,
-            )
+        try:
+            with st.spinner("Running AI pipeline…"):
+                vlm, processor, clip_model, clip_proc = _load_models()
+                result = run_pipeline(
+                    image, selected_plant,
+                    vlm, processor,
+                    clip_model, clip_proc,
+                    ood_threshold=OOD_THRESHOLD,
+                )
+        except FileNotFoundError as e:
+            st.markdown(f"""
+            <div class="error-box">
+                <div class="error-title">⚠️ Model Not Configured</div>
+                <div class="error-body">{html.escape(str(e))}</div>
+            </div>
+            """, unsafe_allow_html=True)
+            return
+        except Exception as e:
+            logger.exception("Model loading / inference failed")
+            st.markdown(f"""
+            <div class="error-box">
+                <div class="error-title">❌ Something Went Wrong</div>
+                <div class="error-body">
+                    {html.escape(type(e).__name__)}: {html.escape(str(e))}<br><br>
+                    Check the terminal running Streamlit for the full traceback.
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            return
 
         # ── Error states ──────────────────────────────────────────────────────
         if result["status"] == "error":
@@ -517,10 +541,10 @@ def main():
         if heatmap_img:
             gc_col1, gc_col2 = st.columns(2, gap="small")
             with gc_col1:
-                st.image(image, use_column_width=True)
+                st.image(image, width="stretch")
                 st.markdown('<div class="gradcam-label">Original Image</div>', unsafe_allow_html=True)
             with gc_col2:
-                st.image(heatmap_img, use_column_width=True)
+                st.image(heatmap_img, width="stretch")
                 st.markdown('<div class="gradcam-label">Model Attention Heatmap</div>', unsafe_allow_html=True)
 
             st.markdown("""

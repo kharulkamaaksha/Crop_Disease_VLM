@@ -1,4 +1,4 @@
-# latest_changes/utils/ood.py
+# utils/ood.py
 """
 Out-of-Distribution (OOD) detection using CLIP cosine similarity.
 

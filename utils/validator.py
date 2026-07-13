@@ -1,4 +1,4 @@
-# latest_changes/utils/validator.py
+# utils/validator.py
 """
 Validates that the plant detected by the VLM matches the user-selected crop.
 

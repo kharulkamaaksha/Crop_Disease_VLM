@@ -1,4 +1,4 @@
-# latest_changes/utils/gradcam.py
+# utils/gradcam.py
 """
 GradCAM implementation for Qwen2.5-VL.
 
@@ -72,8 +72,9 @@ def generate_gradcam(
     """
     Generate a GradCAM / attention heatmap overlay for the given image.
 
-    Hooks into the last visual encoder attention layer and extracts
-    attention weights from a forward pass with the image.
+    Runs a forward pass with `output_attentions=True` and visualises the
+    last visual-encoder attention layer as a heatmap. Falls back to a
+    gradient-based saliency map if attention weights aren't exposed.
 
     Args:
         image:     PIL Image (RGB).
@@ -85,32 +86,6 @@ def generate_gradcam(
         or None if extraction fails.
     """
     try:
-        attention_store = {}
-
-        # Find the visual encoder's last attention layer
-        # Qwen2.5-VL: model.base_model.model.visual.blocks[-1].attn
-        try:
-            visual_blocks = model.base_model.model.visual.blocks
-        except AttributeError:
-            # Direct model (no PEFT wrapper)
-            visual_blocks = model.model.visual.blocks
-
-        last_attn = visual_blocks[-1].attn
-
-        def hook_fn(module, input, output):
-            # output is typically the attention output; we need weights
-            # Store input query/key to recompute if needed
-            attention_store["output"] = output
-
-        # Register forward hook
-        handle = last_attn.register_forward_hook(hook_fn)
-
-        # Also hook to capture attention weights directly if available
-        attn_weights_store = {}
-
-        def attn_hook(module, args, kwargs, output):
-            return output
-
         # Build minimal input for a forward pass
         messages = [{
             "role": "user",
@@ -134,8 +109,6 @@ def generate_gradcam(
                 output_attentions=True,
                 return_dict=True,
             )
-
-        handle.remove()
 
         # Try to get visual attentions
         # Qwen2.5-VL stores them in vision_model outputs

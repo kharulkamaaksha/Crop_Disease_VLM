@@ -1,4 +1,4 @@
-# latest_changes/utils/parser.py
+# utils/parser.py
 """
 Extracts structured fields from the VLM's free-text output using regex.
 Fields: Plant, Condition, Severity, Pathogen (optional).
